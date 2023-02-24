@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -10,7 +11,9 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <h1 className="text-red-500">Hello World</h1>
+      <Link href="/channel/test" className="bg-blue-500 px-4 py-2">
+        Join Channel
+      </Link>
     </>
   );
 }
