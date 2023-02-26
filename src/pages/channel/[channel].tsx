@@ -60,7 +60,6 @@ export default function Channel() {
 
                   if (!downloadRef.current) return;
                   downloadRef.current.href = URL.createObjectURL(received);
-                  // downloadRef.current.download = "hey there";
                   downloadRef.current.download = "rain-drops.avif";
                   downloadRef.current.textContent = "some text content";
                 }
@@ -210,8 +209,6 @@ export default function Channel() {
                   if (offset < file.size) {
                     readSlice(offset);
                   }
-
-                  // offset += e.target.result.byteLength;
                 });
 
                 function readSlice(o: number) {
@@ -222,37 +219,6 @@ export default function Channel() {
                 readSlice(0);
               };
             });
-
-            /* const fileReader = new FileReader();
-
-            let offset = 0;
-
-            fileReader.addEventListener("load", (e) => {
-              console.log("inside filereader load");
-
-              Object.values(users).forEach((user) => {
-                const channel = user.pc.createDataChannel("some-channel");
-
-                channel.onopen = () => {
-                  channel.send(e.target.result);
-                  offset += e.target.result.byteLength;
-                  if (offset < file.size) {
-                    // const slice = file.slice(offset, offset + 16384);
-                    // fileReader.readAsArrayBuffer(slice);
-                    readSlice(offset);
-                  }
-                };
-              });
-
-              offset += e.target.result.byteLength;
-            }); */
-
-            /* function readSlice(o: number) {
-              const slice = file.slice(offset, o + 16384);
-              fileReader.readAsArrayBuffer(slice);
-            }
-
-            readSlice(0); */
           }}
         >
           Send File
