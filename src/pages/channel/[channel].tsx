@@ -1,6 +1,6 @@
 import negotiate from "@/utils/negotiate";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import clsx from "clsx";
 
@@ -26,6 +26,8 @@ export default function Channel() {
 
   const router = useRouter();
 
+  const downloadRef = useRef<null | HTMLAnchorElement>(null);
+
   useEffect(() => {
     socket.on("new-user-list", (userList: User[]) => {
       const socketId = socket.id;
@@ -43,7 +45,28 @@ export default function Channel() {
               ],
             });
 
-            pc.ondatachannel = () => {
+            pc.ondatachannel = (e) => {
+              let buffer = [];
+              let receivedFileSize = 0;
+
+              e.channel.onmessage = (event) => {
+                buffer.push(event.data);
+                receivedFileSize += event.data.byteLength;
+
+                console.log({ receivedFileSize });
+                if (receivedFileSize === 120557) {
+                  const received = new Blob(buffer);
+                  buffer = [];
+
+                  if (!downloadRef.current) return;
+                  downloadRef.current.href = URL.createObjectURL(received);
+                  // downloadRef.current.download = "hey there";
+                  downloadRef.current.download = "rain-drops.avif";
+                  downloadRef.current.textContent = "some text content";
+                }
+
+                console.log("msg => ", event.data);
+              };
               console.log("on data channel event fired");
             };
 
@@ -160,17 +183,98 @@ export default function Channel() {
         </form>
       </div>
 
+      <form action="">
+        <input type="file" name="" id="file-input" />
+        <button
+          className="bg-blue-500 px-4 py-2"
+          onClick={(e) => {
+            e.preventDefault();
+
+            const fileInput: HTMLInputElement | null =
+              document.querySelector("#file-input");
+            const file = fileInput?.files?.[0];
+
+            console.log(file.size, file.name);
+
+            Object.values(users).forEach((user) => {
+              const channel = user.pc.createDataChannel("some-channel");
+
+              channel.onopen = () => {
+                const fileReader = new FileReader();
+
+                let offset = 0;
+
+                fileReader.addEventListener("load", (e) => {
+                  channel.send(e.target.result);
+                  offset += e.target.result.byteLength;
+                  if (offset < file.size) {
+                    readSlice(offset);
+                  }
+
+                  // offset += e.target.result.byteLength;
+                });
+
+                function readSlice(o: number) {
+                  const slice = file.slice(offset, o + 16384);
+                  fileReader.readAsArrayBuffer(slice);
+                }
+
+                readSlice(0);
+              };
+            });
+
+            /* const fileReader = new FileReader();
+
+            let offset = 0;
+
+            fileReader.addEventListener("load", (e) => {
+              console.log("inside filereader load");
+
+              Object.values(users).forEach((user) => {
+                const channel = user.pc.createDataChannel("some-channel");
+
+                channel.onopen = () => {
+                  channel.send(e.target.result);
+                  offset += e.target.result.byteLength;
+                  if (offset < file.size) {
+                    // const slice = file.slice(offset, offset + 16384);
+                    // fileReader.readAsArrayBuffer(slice);
+                    readSlice(offset);
+                  }
+                };
+              });
+
+              offset += e.target.result.byteLength;
+            }); */
+
+            /* function readSlice(o: number) {
+              const slice = file.slice(offset, o + 16384);
+              fileReader.readAsArrayBuffer(slice);
+            }
+
+            readSlice(0); */
+          }}
+        >
+          Send File
+        </button>
+      </form>
+
       <button
         className="bg-red-500 px-4 py-2"
         onClick={() => {
           Object.values(users).forEach((user) => {
             const channel = user.pc.createDataChannel("some-channel");
-            channel.send("does it work");
+            channel.onopen = () => {
+              channel.send("does it work");
+              console.log("send some data btw");
+            };
           });
         }}
       >
         Send some data
       </button>
+
+      <a href="" ref={downloadRef}></a>
     </div>
   );
 }
