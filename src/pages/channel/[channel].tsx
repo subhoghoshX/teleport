@@ -49,19 +49,21 @@ export default function Channel() {
               let buffer = [];
               let receivedFileSize = 0;
 
+              const { fileSize, fileName } = JSON.parse(e.channel.label);
+
               e.channel.onmessage = (event) => {
                 buffer.push(event.data);
                 receivedFileSize += event.data.byteLength;
 
                 console.log({ receivedFileSize });
-                if (receivedFileSize === 120557) {
+                if (receivedFileSize === fileSize) {
                   const received = new Blob(buffer);
                   buffer = [];
 
                   if (!downloadRef.current) return;
                   downloadRef.current.href = URL.createObjectURL(received);
-                  downloadRef.current.download = "rain-drops.avif";
-                  downloadRef.current.textContent = "some text content";
+                  downloadRef.current.download = fileName;
+                  downloadRef.current.textContent = `Download ${fileName}`;
                 }
 
                 console.log("msg => ", event.data);
@@ -195,8 +197,13 @@ export default function Channel() {
 
             console.log(file.size, file.name);
 
+            const channelName = JSON.stringify({
+              fileName: file.name,
+              fileSize: file.size,
+            });
+
             Object.values(users).forEach((user) => {
-              const channel = user.pc.createDataChannel("some-channel");
+              const channel = user.pc.createDataChannel(channelName);
 
               channel.onopen = () => {
                 const fileReader = new FileReader();
