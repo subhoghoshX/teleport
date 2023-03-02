@@ -146,28 +146,65 @@ export default function Channel() {
     };
   }, [users]);
 
+  function sendFile(e) {
+    e.preventDefault();
+
+    const fileInput: HTMLInputElement | null =
+      document.querySelector("#file-input");
+    const file = fileInput?.files?.[0];
+
+    console.log(file.size, file.name);
+
+    const channelName = JSON.stringify({
+      fileName: file.name,
+      fileSize: file.size,
+    });
+
+    Object.values(users).forEach((user) => {
+      const channel = user.pc.createDataChannel(channelName);
+
+      channel.onopen = () => {
+        const fileReader = new FileReader();
+
+        let offset = 0;
+
+        fileReader.addEventListener("load", (e) => {
+          channel.send(e.target.result);
+          offset += e.target.result.byteLength;
+          if (offset < file.size) {
+            readSlice(offset);
+          }
+        });
+
+        function readSlice(o: number) {
+          const slice = file.slice(offset, o + 16384);
+          fileReader.readAsArrayBuffer(slice);
+        }
+
+        readSlice(0);
+      };
+    });
+  }
+
+  function socketConnect(e) {
+    e.preventDefault();
+    setShowJoinScreen(false);
+    socket.auth = {
+      username: userName,
+      room: router.query.room,
+    };
+    socket.connect();
+  }
+
   return (
     <div>
-      <h1>This is a chanel</h1>
-
       <div
         className={clsx(
           "fixed inset-0 z-10 flex items-center justify-center bg-zinc-900/95",
           { hidden: !showJoinScreen },
         )}
       >
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            setShowJoinScreen(false);
-            socket.auth = {
-              username: userName,
-              room: router.query.room,
-            };
-            socket.connect();
-            socket.emit("join", userName);
-          }}
-        >
+        <form onSubmit={socketConnect}>
           <label htmlFor="username" className="text-white">
             Enter Your Name:
           </label>
@@ -186,66 +223,10 @@ export default function Channel() {
 
       <form action="">
         <input type="file" name="" id="file-input" />
-        <button
-          className="bg-blue-500 px-4 py-2"
-          onClick={(e) => {
-            e.preventDefault();
-
-            const fileInput: HTMLInputElement | null =
-              document.querySelector("#file-input");
-            const file = fileInput?.files?.[0];
-
-            console.log(file.size, file.name);
-
-            const channelName = JSON.stringify({
-              fileName: file.name,
-              fileSize: file.size,
-            });
-
-            Object.values(users).forEach((user) => {
-              const channel = user.pc.createDataChannel(channelName);
-
-              channel.onopen = () => {
-                const fileReader = new FileReader();
-
-                let offset = 0;
-
-                fileReader.addEventListener("load", (e) => {
-                  channel.send(e.target.result);
-                  offset += e.target.result.byteLength;
-                  if (offset < file.size) {
-                    readSlice(offset);
-                  }
-                });
-
-                function readSlice(o: number) {
-                  const slice = file.slice(offset, o + 16384);
-                  fileReader.readAsArrayBuffer(slice);
-                }
-
-                readSlice(0);
-              };
-            });
-          }}
-        >
+        <button className="bg-blue-500 px-4 py-2" onClick={sendFile}>
           Send File
         </button>
       </form>
-
-      <button
-        className="bg-red-500 px-4 py-2"
-        onClick={() => {
-          Object.values(users).forEach((user) => {
-            const channel = user.pc.createDataChannel("some-channel");
-            channel.onopen = () => {
-              channel.send("does it work");
-              console.log("send some data btw");
-            };
-          });
-        }}
-      >
-        Send some data
-      </button>
 
       <a href="" ref={downloadRef}></a>
     </div>
