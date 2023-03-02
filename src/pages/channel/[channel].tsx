@@ -197,7 +197,7 @@ export default function Channel() {
   }
 
   return (
-    <div>
+    <>
       <div
         className={clsx(
           "fixed inset-0 z-10 flex items-center justify-center bg-zinc-900/95",
@@ -221,14 +221,46 @@ export default function Channel() {
         </form>
       </div>
 
-      <form action="">
-        <input type="file" name="" id="file-input" />
-        <button className="bg-blue-500 px-4 py-2" onClick={sendFile}>
-          Send File
-        </button>
-      </form>
+      <main className="flex min-h-screen items-center justify-center bg-zinc-900 p-8 text-white">
+        <div className="flex w-full flex-col gap-8 sm:w-auto lg:flex-row">
+          <div className="flex flex-col gap-8">
+            <form
+              action=""
+              className="rounded-2xl bg-zinc-700/70 p-8 lg:min-w-[500px]"
+            >
+              <input type="file" name="" id="file-input" className="w-full" />
+            </form>
+            <div className="min-h-[250px] rounded-2xl bg-zinc-700/70 p-8 lg:min-h-[384px]">
+              <p>Send the selected file to:</p>
+              <ul>
+                {Object.values(users).map((user, i) => (
+                  <li key={i} className="mt-5 flex items-center gap-x-4">
+                    <input
+                      type="checkbox"
+                      id={user.userId}
+                      className="h-4 w-4"
+                    />
+                    <label htmlFor={user.userId} className="select-none">
+                      {user.username}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <button
+              className="rounded-2xl bg-blue-600 px-4 py-3 hover:bg-blue-500"
+              onClick={sendFile}
+            >
+              Send File
+            </button>
+          </div>
+          <div className="min-h-[200px] rounded-2xl bg-zinc-700/70 p-8 lg:min-w-[384px]">
+            Received files:
+          </div>
+        </div>
+      </main>
 
       <a href="" ref={downloadRef}></a>
-    </div>
+    </>
   );
 }
