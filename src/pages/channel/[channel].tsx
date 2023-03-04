@@ -171,8 +171,9 @@ export default function Channel() {
         let offset = 0;
 
         fileReader.addEventListener("load", (e) => {
-          channel.send(e.target.result);
-          offset += e.target.result.byteLength;
+          const result = fileReader.result as ArrayBuffer;
+          channel.send(result);
+          offset += result.byteLength;
           if (offset < file.size) {
             readSlice(offset);
           }
