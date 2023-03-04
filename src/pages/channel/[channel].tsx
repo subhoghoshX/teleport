@@ -1,6 +1,6 @@
 import negotiate from "@/utils/negotiate";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import clsx from "clsx";
 
@@ -46,7 +46,7 @@ export default function Channel() {
             });
 
             pc.ondatachannel = (e) => {
-              let buffer = [];
+              let buffer: Buffer[] = [];
               let receivedFileSize = 0;
 
               const { fileSize, fileName } = JSON.parse(e.channel.label);
@@ -146,12 +146,14 @@ export default function Channel() {
     };
   }, [users]);
 
-  function sendFile(e) {
+  function sendFile(e: FormEvent) {
     e.preventDefault();
 
     const fileInput: HTMLInputElement | null =
       document.querySelector("#file-input");
     const file = fileInput?.files?.[0];
+
+    if (!file) return;
 
     console.log(file.size, file.name);
 
@@ -186,7 +188,7 @@ export default function Channel() {
     });
   }
 
-  function socketConnect(e) {
+  function socketConnect(e: FormEvent) {
     e.preventDefault();
     setShowJoinScreen(false);
     socket.auth = {
