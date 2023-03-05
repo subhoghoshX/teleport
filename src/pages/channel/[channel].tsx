@@ -19,14 +19,19 @@ type User = {
   username: string;
 };
 
+type File = {
+  fileName: string;
+  href: string;
+  textContent: string;
+};
+
 export default function Channel() {
   const [users, setUsers] = useState<Record<string, ConnectionDetail>>({});
   const [userName, setUserName] = useState("");
   const [showJoinScreen, setShowJoinScreen] = useState(true);
+  const [files, setFiles] = useState<File[]>([]);
 
   const router = useRouter();
-
-  const downloadRef = useRef<null | HTMLAnchorElement>(null);
 
   useEffect(() => {
     socket.on("new-user-list", (userList: User[]) => {
@@ -60,10 +65,14 @@ export default function Channel() {
                   const received = new Blob(buffer);
                   buffer = [];
 
-                  if (!downloadRef.current) return;
-                  downloadRef.current.href = URL.createObjectURL(received);
-                  downloadRef.current.download = fileName;
-                  downloadRef.current.textContent = `Download ${fileName}`;
+                  setFiles((files) => [
+                    ...files,
+                    {
+                      href: URL.createObjectURL(received),
+                      fileName,
+                      textContent: `Download ${fileName}`,
+                    },
+                  ]);
                 }
 
                 console.log("msg => ", event.data);
@@ -259,11 +268,18 @@ export default function Channel() {
           </div>
           <div className="min-h-[200px] rounded-2xl bg-zinc-700/70 p-8 lg:min-w-[384px]">
             Received files:
+            <ul>
+              {files.map((file, i) => (
+                <li key={i}>
+                  <a href={file.href} download={file.fileName}>
+                    {file.textContent}
+                  </a>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </main>
-
-      <a href="" ref={downloadRef}></a>
     </>
   );
 }
