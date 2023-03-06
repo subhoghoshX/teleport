@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import clsx from "clsx";
+import DownloadButton from "@/components/DownloadButton";
 
 const socket = io({
   autoConnect: false,
@@ -19,10 +20,9 @@ type User = {
   username: string;
 };
 
-type File = {
+export type File = {
   fileName: string;
   href: string;
-  textContent: string;
 };
 
 export default function Channel() {
@@ -70,7 +70,6 @@ export default function Channel() {
                     {
                       href: URL.createObjectURL(received),
                       fileName,
-                      textContent: `Download ${fileName}`,
                     },
                   ]);
                 }
@@ -268,12 +267,17 @@ export default function Channel() {
           </div>
           <div className="min-h-[200px] rounded-2xl bg-zinc-700/70 p-8 lg:min-w-[384px]">
             Received files:
-            <ul>
+            <ul className="mt-4 space-y-3 text-sm">
               {files.map((file, i) => (
-                <li key={i}>
-                  <a href={file.href} download={file.fileName}>
-                    {file.textContent}
-                  </a>
+                <li
+                  key={i}
+                  className="flex items-center justify-between rounded-xl bg-zinc-600 px-3 py-2"
+                >
+                  <div>
+                    <p>{file.fileName}</p>
+                    <p className="italic text-zinc-400">From: Subho</p>
+                  </div>
+                  <DownloadButton fileInfo={file} />
                 </li>
               ))}
             </ul>
