@@ -21,8 +21,11 @@ type User = {
 };
 
 export type File = {
+  id: number;
   fileName: string;
-  href: string;
+  href: string | undefined;
+  receivedFileSize: number;
+  totalFileSize: number;
 };
 
 export default function Channel() {
@@ -60,23 +63,43 @@ export default function Channel() {
                 buffer.push(event.data);
                 receivedFileSize += event.data.byteLength;
 
-                console.log({ receivedFileSize });
+                setFiles((files) => {
+                  if (
+                    files.filter((file) => file.id === e.channel.id).length ===
+                    0
+                  ) {
+                    return [
+                      ...files,
+                      {
+                        receivedFileSize: 0,
+                        id: e.channel.id as number,
+                        href: undefined,
+                        fileName,
+                        totalFileSize: fileSize,
+                      },
+                    ];
+                  }
+
+                  return files.map((file) =>
+                    file.id === e.channel.id
+                      ? { ...file, receivedFileSize }
+                      : file,
+                  );
+                });
+
                 if (receivedFileSize === fileSize) {
                   const received = new Blob(buffer);
                   buffer = [];
 
-                  setFiles((files) => [
-                    ...files,
-                    {
-                      href: URL.createObjectURL(received),
-                      fileName,
-                    },
-                  ]);
+                  setFiles((files) =>
+                    files.map((file) =>
+                      file.id === e.channel.id
+                        ? { ...file, href: URL.createObjectURL(received) }
+                        : file,
+                    ),
+                  );
                 }
-
-                console.log("msg => ", event.data);
               };
-              console.log("on data channel event fired");
             };
 
             pc.onicecandidate = (event) => {
@@ -259,7 +282,7 @@ export default function Channel() {
               </ul>
             </div>
             <button
-              className="rounded-2xl bg-blue-600 px-4 py-3 hover:bg-blue-500"
+              className="rounded-2xl border border-cyan-800 bg-cyan-900 px-4 py-3 hover:bg-cyan-900/90"
               onClick={sendFile}
             >
               Send File
