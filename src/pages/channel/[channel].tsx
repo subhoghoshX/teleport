@@ -13,6 +13,7 @@ interface ConnectionDetail {
   pc: RTCPeerConnection;
   userId: string;
   username: string;
+  selectedForSending: boolean;
 }
 
 type User = {
@@ -124,6 +125,7 @@ export default function Channel() {
               pc,
               userId,
               username,
+              selectedForSending: true,
             };
           }
         });
@@ -198,31 +200,33 @@ export default function Channel() {
       sender: userName,
     });
 
-    Object.values(users).forEach((user) => {
-      const channel = user.pc.createDataChannel(channelName);
+    Object.values(users)
+      .filter((user) => user.selectedForSending)
+      .forEach((user) => {
+        const channel = user.pc.createDataChannel(channelName);
 
-      channel.onopen = () => {
-        const fileReader = new FileReader();
+        channel.onopen = () => {
+          const fileReader = new FileReader();
 
-        let offset = 0;
+          let offset = 0;
 
-        fileReader.addEventListener("load", (e) => {
-          const result = fileReader.result as ArrayBuffer;
-          channel.send(result);
-          offset += result.byteLength;
-          if (offset < file.size) {
-            readSlice(offset);
+          fileReader.addEventListener("load", (e) => {
+            const result = fileReader.result as ArrayBuffer;
+            channel.send(result);
+            offset += result.byteLength;
+            if (offset < file.size) {
+              readSlice(offset);
+            }
+          });
+
+          function readSlice(o: number) {
+            const slice = file.slice(offset, o + 16384);
+            fileReader.readAsArrayBuffer(slice);
           }
-        });
 
-        function readSlice(o: number) {
-          const slice = file.slice(offset, o + 16384);
-          fileReader.readAsArrayBuffer(slice);
-        }
-
-        readSlice(0);
-      };
-    });
+          readSlice(0);
+        };
+      });
   }
 
   function socketConnect(e: FormEvent) {
@@ -278,6 +282,17 @@ export default function Channel() {
                       type="checkbox"
                       id={user.userId}
                       className="h-4 w-4"
+                      checked={user.selectedForSending}
+                      onChange={(e) => {
+                        setUsers((users) => {
+                          const usersCopy = { ...users };
+
+                          usersCopy[user.userId].selectedForSending =
+                            e.target.checked;
+
+                          return usersCopy;
+                        });
+                      }}
                     />
                     <label htmlFor={user.userId} className="select-none">
                       {user.username}
