@@ -26,6 +26,7 @@ export type File = {
   href: string | undefined;
   receivedFileSize: number;
   totalFileSize: number;
+  sender: string;
 };
 
 export default function Channel() {
@@ -57,7 +58,9 @@ export default function Channel() {
               let buffer: Buffer[] = [];
               let receivedFileSize = 0;
 
-              const { fileSize, fileName } = JSON.parse(e.channel.label);
+              const { fileSize, fileName, sender } = JSON.parse(
+                e.channel.label,
+              );
 
               e.channel.onmessage = (event) => {
                 buffer.push(event.data);
@@ -76,6 +79,7 @@ export default function Channel() {
                         href: undefined,
                         fileName,
                         totalFileSize: fileSize,
+                        sender,
                       },
                     ];
                   }
@@ -191,6 +195,7 @@ export default function Channel() {
     const channelName = JSON.stringify({
       fileName: file.name,
       fileSize: file.size,
+      sender: userName,
     });
 
     Object.values(users).forEach((user) => {
@@ -298,7 +303,7 @@ export default function Channel() {
                 >
                   <div>
                     <p>{file.fileName}</p>
-                    <p className="italic text-zinc-400">From: Subho</p>
+                    <p className="italic text-zinc-400">From: {file.sender}</p>
                   </div>
                   <DownloadButton fileInfo={file} />
                 </li>
