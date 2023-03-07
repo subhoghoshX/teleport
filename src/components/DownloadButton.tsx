@@ -13,10 +13,12 @@ export default function DownloadButton({ fileInfo }: Props) {
     <a
       href={href}
       download={fileName}
-      className="relative overflow-hidden rounded-md border border-cyan-500 px-4 py-2"
+      className="relative w-24 overflow-hidden rounded-md border border-cyan-500 py-2 text-center"
     >
       <span className="relative z-20">
-        {receivedFileSize === totalFileSize ? "Download" : "Receiving."}
+        {receivedFileSize === totalFileSize
+          ? "Download"
+          : percentage.toFixed(1) + "%"}
       </span>
       <span
         className="absolute inset-0 bg-cyan-500/20"
