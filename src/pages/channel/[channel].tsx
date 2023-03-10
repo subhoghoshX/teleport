@@ -220,8 +220,8 @@ export default function Channel() {
           });
 
           function readSlice(o: number) {
-            const slice = file.slice(offset, o + 16384);
-            fileReader.readAsArrayBuffer(slice);
+            const slice = file?.slice(offset, o + 16384);
+            slice && fileReader.readAsArrayBuffer(slice);
           }
 
           readSlice(0);
